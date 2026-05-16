@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giveaway Grok</title>
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --panel: #131722;
+      --border: #2a2f3d;
+      --text: #e6e9ef;
+      --muted: #8b93a7;
+      --accent: #1d9bf0;
+      --accent-hover: #1a8cd8;
+      --success: #16c784;
+      --warning: #f0b90b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 22px;
+    }
+    header p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+    .badge.online  { background: rgba(22, 199, 132, 0.15); color: var(--success); }
+    .badge.offline { background: rgba(240, 185, 11, 0.15); color: var(--warning); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    textarea, input[type="number"], select {
+      width: 100%;
+      background: #0e1320;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      resize: vertical;
+    }
+    textarea { min-height: 130px; }
+    textarea:focus, input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .row > div { flex: 1; min-width: 110px; }
+    label.inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text);
+      margin: 0;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    button {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: var(--accent-hover); }
+    button:disabled { background: #2a2f3d; color: var(--muted); cursor: not-allowed; }
+
+    .meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .meta span {
+      background: #0e1320;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: var(--muted);
+    }
+    .meta b { color: var(--text); font-weight: 500; }
+
+    .reasoning {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+      border-left: 3px solid var(--border);
+      padding: 4px 0 4px 12px;
+      margin-bottom: 14px;
+    }
+
+    .comment {
+      background: #0e1320;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .comment p {
+      flex: 1;
+      margin: 0;
+      word-break: break-word;
+    }
+    .copy-btn {
+      flex-shrink: 0;
+      width: auto;
+      margin: 0;
+      padding: 6px 12px;
+      font-size: 12px;
+      background: var(--border);
+      color: var(--text);
+      border-radius: 999px;
+    }
+    .copy-btn:hover:not(:disabled) { background: #3a4154; }
+    .copy-btn.copied { background: var(--success); color: white; }
+
+    .error {
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 14px;
+      text-align: center;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Giveaway Grok <span id="modeBadge" class="badge offline">offline</span></h1>
+      <p>Tempel teks postingan giveaway, klik generate. Komentar dibuat dengan gaya Grok-style.</p>
+    </header>
+
+    <section class="card">
+      <label for="post">Teks postingan giveaway</label>
+      <textarea id="post" placeholder="Contoh: GIVEAWAY iPhone 15! Follow @brandku, RT, dan comment alasan kamu menang."></textarea>
+
+      <div class="row">
+        <div>
+          <label for="n">Jumlah varian</label>
+          <select id="n">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="5">5</option>
+            <option value="7">7</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+        <div>
+          <label class="inline">
+            <input type="checkbox" id="forceOffline" />
+            Paksa offline (tidak panggil API)
+          </label>
+        </div>
+      </div>
+
+      <button id="goBtn">Generate komentar</button>
+      <div id="error" class="error hidden" style="margin-top:12px;"></div>
+    </section>
+
+    <section class="card hidden" id="resultCard">
+      <div class="meta">
+        <span>Bahasa: <b id="metaLang">-</b></span>
+        <span>Hadiah: <b id="metaPrize">-</b></span>
+        <span>Host: <b id="metaHost">-</b></span>
+        <span>Mode: <b id="metaMode">-</b></span>
+      </div>
+      <div class="reasoning" id="reasoning"></div>
+      <div id="comments"></div>
+    </section>
+
+    <p class="hint">
+      Server jalan lokal di perangkatmu. API key tidak pernah meninggalkan HP.
+    </p>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    async function refreshMode() {
+      try {
+        const r = await fetch("/api/status");
+        const j = await r.json();
+        const badge = $("modeBadge");
+        if (j.online) {
+          badge.textContent = "online (Grok API)";
+          badge.className = "badge online";
+        } else {
+          badge.textContent = "offline (template)";
+          badge.className = "badge offline";
+        }
+      } catch (e) {
+        // biarkan default offline
+      }
+    }
+
+    async function generate() {
+      const post = $("post").value.trim();
+      const n = parseInt($("n").value, 10);
+      const offline = $("forceOffline").checked;
+
+      $("error").classList.add("hidden");
+      $("resultCard").classList.add("hidden");
+
+      if (!post) {
+        showError("Teks giveaway masih kosong.");
+        return;
+      }
+
+      const goBtn = $("goBtn");
+      goBtn.disabled = true;
+      goBtn.textContent = "Generating...";
+
+      try {
+        const r = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ post, n, offline }),
+        });
+        const j = await r.json();
+        if (!r.ok) {
+          showError(j.error || `HTTP ${r.status}`);
+          return;
+        }
+        renderResult(j);
+      } catch (e) {
+        showError(`Gagal kontak server: ${e.message}`);
+      } finally {
+        goBtn.disabled = false;
+        goBtn.textContent = "Generate komentar";
+      }
+    }
+
+    function showError(msg) {
+      const el = $("error");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+
+    function renderResult(j) {
+      $("metaLang").textContent = j.language || "-";
+      $("metaPrize").textContent = j.prize || "-";
+      $("metaHost").textContent = j.host || "-";
+      $("metaMode").textContent = j.mode || "-";
+      $("reasoning").textContent = j.reasoning || "";
+
+      const wrap = $("comments");
+      wrap.innerHTML = "";
+      (j.comments || []).forEach((c, i) => {
+        const div = document.createElement("div");
+        div.className = "comment";
+        div.innerHTML = `
+          <p>${escapeHtml(c)}</p>
+          <button class="copy-btn">Copy</button>
+        `;
+        const btn = div.querySelector(".copy-btn");
+        btn.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(c);
+            btn.textContent = "Copied";
+            btn.classList.add("copied");
+            setTimeout(() => {
+              btn.textContent = "Copy";
+              btn.classList.remove("copied");
+            }, 1400);
+          } catch (e) {
+            // fallback: select + execCommand
+            const ta = document.createElement("textarea");
+            ta.value = c;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand("copy"); } catch {}
+            ta.remove();
+            btn.textContent = "Copied";
+            setTimeout(() => (btn.textContent = "Copy"), 1400);
+          }
+        });
+        wrap.appendChild(div);
+      });
+      $("resultCard").classList.remove("hidden");
+    }
+
+    $("goBtn").addEventListener("click", generate);
+    $("post").addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") generate();
+    });
+    refreshMode();
+  </script>
+</body>
+</html>
